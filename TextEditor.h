@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QMenu>
+#include <QtPrintSupport/QPrinter>
+#include <QtPrintSupport/QPrintDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class TextEditor; }
@@ -20,6 +22,7 @@ private slots:
     void slotFileOpen();
     void slotFileSave();
     void slotFileSaveAs();
+    void slotPrintFile();
 
 private:
     Ui::TextEditor *uiPtr;
