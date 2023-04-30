@@ -67,29 +67,29 @@ void TextEditor::slotFileSaveAs()
     file.close();
 }
 
+void TextEditor::slotPrintFile()
+{
+    QPrinter printer;
+    QPrintDialog dlg(&printer, this);
+    dlg.setWindowTitle("Print");
+    if (dlg.exec() != QDialog::Accepted)
+    {
+        return;
+    }
+    uiPtr->textBrowser->print(&printer);
+}
+
 QMenu *TextEditor::menuConfig()
 {
     QMenu *menuFilePtr = new QMenu(this);
     menuFilePtr->setTitle(tr("Files"));
-    menuFilePtr->addAction(tr("Open file"), this, &TextEditor::slotFileOpen, QKeySequence::New);      //Ctrl+N
-    menuFilePtr->addAction(tr("Save file"), this, &TextEditor::slotFileSave, QKeySequence::SaveAs);   //Ctrl+S
-    menuFilePtr->addAction(tr("Save file as"), this, &TextEditor::slotFileSaveAs, QKeySequence::Save);//Ctrl+Shift+S
+    menuFilePtr->addAction(tr("Open file"), this, &TextEditor::slotFileOpen, QKeySequence::New); //Ctrl+N
+    menuFilePtr->addSeparator();
+    menuFilePtr->addAction(tr("Save file"), this, &TextEditor::slotFileSave, QKeySequence::Save);   //Ctrl+S
+    menuFilePtr->addSeparator();
+    menuFilePtr->addAction(tr("Save file as"), this, &TextEditor::slotFileSaveAs, QKeySequence::SaveAs);//Ctrl+Shift+S
+    menuFilePtr->addSeparator();
+    menuFilePtr->addAction(tr("Print file"), this, &TextEditor::slotPrintFile, QKeySequence::Print); //Ctrl+P
     return menuFilePtr;
 }
 
-//void TextEditor::on_actionOpen_triggered()
-//{
-
-//}
-
-
-//void TextEditor::on_actionSave_triggered()
-//{
-
-//}
-
-
-//void MainWindow::on_actionSave_as_triggered()
-//{
-
-//}
