@@ -13,7 +13,7 @@
 *.so
 *.so.*
 *_pch.h.cpp
-*_resource.rc
+#*_resource.rc
 *.qm
 .#*
 *.*#
@@ -30,8 +30,8 @@ moc_*.cpp
 ui_*.h
 qrc_*.cpp
 Thumbs.db
-*.res
-*.rc
+#*.res
+#*.rc
 /.qmake.cache
 /.qmake.stash
 
