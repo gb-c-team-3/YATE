@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QMenu>
+#include <QToolBar>
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
 
@@ -19,15 +20,37 @@ public:
     ~TextEditor();
 
 private slots:
+    void slotFileNew();
     void slotFileOpen();
     void slotFileSave();
     void slotFileSaveAs();
     void slotPrintFile();
+    void slotExitFile();
+    void slotUndo();
+    void slotRedo();
+    void slotCopy();
+    void slotCut();
+    void slotPaste();
+    void slotSelectAll();
+    void slotBold();
+    void slotItalic();
+    void slotUnderlined();
+    void slotCrossedOut();
+    void slotFontStyle();
+    void slotFontColor();
+    void slotInsertImage();
+    void slotInsertTable();
+    void slotDarkMode();
+    void slotLightMode();
 
 private:
     Ui::TextEditor *uiPtr;
-    QString file_path;
-
+    QString file_path = "";
+    QToolBar *toolbar();
     QMenu *menuConfig();
+    QMenu *editMenu();
+    QMenu *formatMenu();
+    QMenu *insertMenu();
+    QMenu *viewMenu();
 };
 #endif // TEXTEDITOR_H
