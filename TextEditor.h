@@ -20,6 +20,7 @@ public:
     ~TextEditor();
 
 private slots:
+    void slotRenameTitle(QString newName);
     void slotFileNew();
     void slotFileOpen();
     void slotFileSave();
