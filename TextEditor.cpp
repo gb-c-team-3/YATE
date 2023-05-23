@@ -25,13 +25,22 @@ TextEditor::TextEditor(QWidget *parent)
     uiPtr->menubar->addMenu(insertMenu());
     uiPtr->menubar->addMenu(viewMenu());
     uiPtr->toolBar->addWidget(toolbar());
-    setWindowTitle(tr("Team-3 Text Editor"));
+    slotRenameTitle("");
     setWindowIcon(QIcon(":/res/Icons/file"));
 }
 
 TextEditor::~TextEditor()
 {
     delete uiPtr;
+}
+
+
+void TextEditor::slotRenameTitle(QString newName)
+{
+    if (newName == "")
+        setWindowTitle(tr("Team.3 Text Editor"));
+    else
+        setWindowTitle(newName + tr(" - Team.3 Text Editor"));
 }
 
 void TextEditor::slotFileNew()
@@ -51,7 +60,9 @@ void TextEditor::slotFileOpen()
     }
     QTextStream in(&file);
     QString text = in.readAll();
-    uiPtr->textBrowser->setText(text);
+    QFileInfo fileInfo(file_path);
+    QString titleName = fileInfo.fileName();
+    slotRenameTitle(titleName);
     file.close();
 }
 
