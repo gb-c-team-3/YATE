@@ -12,14 +12,15 @@
 #include <QIcon>
 #include <QToolBar>
 #include <QAction>
+#include <QCloseEvent>
 
 
 TextEditor::TextEditor(QWidget *parent)
     : QMainWindow(parent), uiPtr(new Ui::TextEditor)
 {
     uiPtr->setupUi(this);
-    uiPtr->menubar->addMenu(menuConfig());
     uiPtr->menubar->setFont(tr("Corbel"));
+    uiPtr->menubar->addMenu(menuConfig());
     uiPtr->menubar->addMenu(editMenu());
     uiPtr->menubar->addMenu(formatMenu());
     uiPtr->menubar->addMenu(insertMenu());
@@ -34,7 +35,6 @@ TextEditor::~TextEditor()
     delete uiPtr;
 }
 
-
 void TextEditor::slotRenameTitle(QString newName)
 {
     if (newName == "")
@@ -45,7 +45,19 @@ void TextEditor::slotRenameTitle(QString newName)
 
 void TextEditor::slotFileNew()
 {
+    if (hasUnsavedChanges()) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to create a new file?",
+                                      QMessageBox::Yes|QMessageBox::No);
 
+        if (reply == QMessageBox::Yes) {
+            uiPtr->textBrowser->clear();
+            slotFileSaveAs();
+        }
+    } else {
+        uiPtr->textBrowser->clear();
+        slotFileSaveAs();
+    }
 }
 
 void TextEditor::slotFileOpen()
@@ -68,6 +80,11 @@ void TextEditor::slotFileOpen()
 
 void TextEditor::slotFileSave()
 {
+    if(uiPtr->textBrowser->toPlainText().length() > 0 && file_path.isEmpty()) {
+       slotFileSaveAs();
+       return;
+    }
+
     QFile file(file_path);
     if(!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -326,3 +343,37 @@ QToolBar *TextEditor::toolbar()
     return toolbar;
 }
 
+void TextEditor::closeEvent(QCloseEvent *event)
+{
+    if (hasUnsavedChanges()) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to quit?",
+                                      QMessageBox::Yes|QMessageBox::No);
+
+        if (reply == QMessageBox::No) {
+            event->ignore();
+        } else {
+            event->accept();
+        }
+    } else {
+        event->accept();
+    }
+}
+
+bool TextEditor::hasUnsavedChanges() {
+    if(uiPtr->textBrowser->toPlainText().length() > 0 && file_path.isEmpty()) {
+        return true;
+    }
+
+
+    QFile file(file_path);
+    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+        return false;
+    }
+
+    QTextStream in(&file);
+    QString fileContent = in.readAll();
+    QString textContent = uiPtr->textBrowser->toPlainText();
+
+    return (textContent != fileContent);
+}

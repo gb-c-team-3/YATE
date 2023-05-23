@@ -43,7 +43,8 @@ private slots:
     void slotInsertTable();
     void slotDarkMode();
     void slotLightMode();
-
+    void closeEvent(QCloseEvent *event);
+    bool hasUnsavedChanges();
 private:
     Ui::TextEditor *uiPtr;
     QString file_path = "";
