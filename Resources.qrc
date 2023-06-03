@@ -42,5 +42,7 @@
         <file>Icons/turn-left_white.png</file>
         <file>Icons/underline.png</file>
         <file>Icons/underline_white.png</file>
+        <file>Icons/picture-decrease.png</file>
+        <file>Icons/picture-increase.png</file>
     </qresource>
 </RCC>

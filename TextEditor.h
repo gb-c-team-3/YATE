@@ -40,6 +40,8 @@ private slots:
     void slotFontStyle();
     void slotFontColor();
     void slotInsertImage();
+    void slotIncreaseImage();
+    void slotDecreaseImage();
     void slotInsertTable();
     void slotDarkMode();
     void slotLightMode();

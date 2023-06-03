@@ -13,7 +13,7 @@
 #include <QToolBar>
 #include <QAction>
 #include <QCloseEvent>
-
+#include <QTextBlock>
 
 TextEditor::TextEditor(QWidget *parent)
     : QMainWindow(parent), uiPtr(new Ui::TextEditor)
@@ -194,7 +194,66 @@ void TextEditor::slotFontColor()
 
 void TextEditor::slotInsertImage()
 {
+//   uiPtr->textBrowser->loadResource(QTextDocument::ImageResource, QFileDialog::getOpenFileName(this, "Open the file"));
+     //uiPtr->textBrowser->textCursor().insertImage(QFileDialog::getOpenFileName(this, "Open the file"));
+    QTextImageFormat *img_fmt = new QTextImageFormat();
+    img_fmt->setName(QFileDialog::getOpenFileName(this, "Open the file"));
+    img_fmt->setHeight(10);
+    img_fmt->setWidth(10);
+    uiPtr->textBrowser->textCursor().insertImage(*img_fmt);
+}
 
+void TextEditor::slotIncreaseImage()
+{
+    QTextBlock currentBlock = uiPtr->textBrowser->textCursor().block();
+    QTextBlock::iterator it;
+    static const double INCREASE_STEP = 10.0;
+    for (it = currentBlock.begin(); !(it.atEnd()); ++it)
+    {
+        QTextFragment fragment = it.fragment();
+        if (fragment.isValid())
+        {
+            if(fragment.charFormat().isImageFormat())
+            {
+                 QTextImageFormat newImageFormat = fragment.charFormat().toImageFormat();
+                 newImageFormat.setWidth(newImageFormat.width()+ INCREASE_STEP);
+                 newImageFormat.setHeight(newImageFormat.height()+ INCREASE_STEP);
+
+                 QTextCursor coursorPtr = uiPtr->textBrowser->textCursor();
+                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionStart());
+                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionEnd(), QTextCursor::KeepAnchor);
+                 coursorPtr.setCharFormat(newImageFormat);
+             }
+         }
+    }
+}
+
+void TextEditor::slotDecreaseImage()
+{
+    QTextBlock currentBlock = uiPtr->textBrowser->textCursor().block();
+    QTextBlock::iterator it;
+    static const double DECREASE_STEP = 10.0;
+    for (it = currentBlock.begin(); !(it.atEnd()); ++it)
+    {
+        QTextFragment fragment = it.fragment();
+        if (fragment.isValid())
+        {
+            if(fragment.charFormat().isImageFormat())
+            {
+                 QTextImageFormat newImageFormat = fragment.charFormat().toImageFormat();
+                 if(((newImageFormat.width()-DECREASE_STEP) > 0) && ((newImageFormat.height()-DECREASE_STEP) > 0))
+                 {
+                    newImageFormat.setWidth(newImageFormat.width()-DECREASE_STEP);
+                    newImageFormat.setHeight(newImageFormat.height()-DECREASE_STEP);
+                 }
+
+                 QTextCursor coursorPtr = uiPtr->textBrowser->textCursor();
+                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionStart());
+                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionEnd(), QTextCursor::KeepAnchor);
+                 coursorPtr.setCharFormat(newImageFormat);
+             }
+         }
+    }
 }
 
 void TextEditor::slotInsertTable()
@@ -336,6 +395,12 @@ QToolBar *TextEditor::toolbar()
 
     QAction *iamge = toolbar->addAction(QIcon(":/res/Icons/insert-picture-icon"), "Insert image");
     connect(iamge, &QAction::triggered, this, &TextEditor::slotInsertImage);
+
+    QAction *image_up = toolbar->addAction(QIcon(":/res/Icons/picture-increase.png"), "Insert image");
+    connect(image_up, &QAction::triggered, this, &TextEditor::slotIncreaseImage);
+
+    QAction *image_down = toolbar->addAction(QIcon(":/res/Icons/picture-decrease.png"), "Insert image");
+    connect(image_down, &QAction::triggered, this, &TextEditor::slotDecreaseImage);
 
     QAction *tablet = toolbar->addAction(QIcon(":/res/Icons/tablet"), "Insert table");
     connect(tablet, &QAction::triggered, this, &TextEditor::slotInsertTable);
