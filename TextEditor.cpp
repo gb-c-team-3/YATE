@@ -204,12 +204,22 @@ void TextEditor::slotInsertTable()
 
 void TextEditor::slotDarkMode()
 {
-
+    setStyleSheet("QPushButton{background-color:black; color:white}"
+                  "QMainWindow{background-color:black;}"
+                  "QTextEdit{background-color:black;color:white}"
+                  "QListView{background-color:black;color:white}"
+                  "QMenuBar{background-color:black;color:white}"
+                  );
 }
 
 void TextEditor::slotLightMode()
 {
-
+    setStyleSheet("QPushButton{background-color:white; color:black}"
+                  "QMainWindow{background-color:white;}"
+                  "QTextEdit{background-color:white;color:black}"
+                  "QListView{background-color:white;color:black}"
+                  "QMenuBar{background-color:white;color:black}"
+                  );
 }
 
 QMenu *TextEditor::menuConfig()
