@@ -6,6 +6,9 @@
 #include <QToolBar>
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
+#include <QGridLayout>
+#include <QPushButton>
+#include <QGroupBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class TextEditor; }
@@ -47,6 +50,17 @@ private slots:
     void slotLightMode();
     void closeEvent(QCloseEvent *event);
     bool hasUnsavedChanges();
+
+    //Palette buttons
+    void onRedColorButtonClicked();
+    void onOrangeColorButtonClicked();
+    void onYellowColorButtonClicked();
+    void onGreenColorButtonClicked();
+    void onAzureColorButtonClicked();
+    void onBlueColorButtonClicked();
+    void onPurpleColorButtonClicked();
+    void onBlackColorButtonClicked();
+
 private:
     Ui::TextEditor *uiPtr;
     QString file_path = "";
@@ -56,5 +70,24 @@ private:
     QMenu *formatMenu();
     QMenu *insertMenu();
     QMenu *viewMenu();
+
+    //Palette
+    QWidget *window = NULL;
+    QGroupBox *gridGroupBox;
+    QGridLayout *colorPalette;
+    QPushButton *redColorButton;
+    QPushButton *orangeColorButton;
+    QPushButton *yellowColorButton;
+    QPushButton *greenColorButton;
+    QPushButton *azureColorButton;
+    QPushButton *blueColorButton;
+    QPushButton *purpleColorButton;
+    QPushButton *blackColorButton;
+
+    void setPaletteColors();
+    void createColorPalette(qint32 x ,qint32 y , qint32 width=200 , qint32 height=100);
+    void hidePalette(QWidget *window);
+    void showPalette(QWidget *window);
+
 };
 #endif // TEXTEDITOR_H

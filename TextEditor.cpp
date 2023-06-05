@@ -14,6 +14,8 @@
 #include <QAction>
 #include <QCloseEvent>
 #include <QTextBlock>
+#include <QPushButton>
+
 
 TextEditor::TextEditor(QWidget *parent)
     : QMainWindow(parent), uiPtr(new Ui::TextEditor)
@@ -28,6 +30,7 @@ TextEditor::TextEditor(QWidget *parent)
     uiPtr->toolBar->addWidget(toolbar());
     slotRenameTitle("");
     setWindowIcon(QIcon(":/res/Icons/file"));
+
 }
 
 TextEditor::~TextEditor()
@@ -164,21 +167,46 @@ void TextEditor::slotSelectAll()
 
 void TextEditor::slotBold()
 {
-
+    if( uiPtr->textBrowser->fontWeight() == QFont::Normal) {
+        uiPtr->textBrowser->setFontWeight(QFont::Bold);
+    }
+    else{
+        uiPtr->textBrowser->setFontWeight(QFont::Normal);
+    }
 }
 
 void TextEditor::slotItalic()
 {
-
+    if(uiPtr->textBrowser->fontItalic() == true) {
+        uiPtr->textBrowser->setFontItalic(false);
+    }
+    else{
+        uiPtr->textBrowser->setFontItalic(true);
+    }
 }
 
 void TextEditor::slotUnderlined()
 {
-
+    if( uiPtr->textBrowser->fontUnderline() == true) {
+        uiPtr->textBrowser->setFontUnderline(false);
+    }
+    else{
+        uiPtr->textBrowser->setFontUnderline(true);
+    }
 }
 
 void TextEditor::slotCrossedOut()
 {
+    QFont font_ = uiPtr->textBrowser->currentFont();
+
+    if( uiPtr->textBrowser->currentFont().strikeOut() == true) {
+        font_.setStrikeOut(false);
+        uiPtr->textBrowser->setCurrentFont(font_);
+    }
+    else{
+        font_.setStrikeOut(true);
+        uiPtr->textBrowser->setCurrentFont(font_);
+    }
 
 }
 
@@ -189,6 +217,9 @@ void TextEditor::slotFontStyle()
 
 void TextEditor::slotFontColor()
 {
+
+    QPoint Pos =mapFromGlobal(QCursor::pos());
+    createColorPalette(Pos.x() , Pos.y()-(uiPtr->toolBar->height()));
 
 }
 
@@ -376,12 +407,23 @@ QToolBar *TextEditor::toolbar()
 
     QAction *bold = toolbar->addAction(QIcon(":/res/Icons/bold"), "Bold");
     connect(bold, &QAction::triggered, this, &TextEditor::slotBold);
+    bold->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+                   "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *italic = toolbar->addAction(QIcon(":/res/Icons/italic"), "Italic");
     connect(italic, &QAction::triggered, this, &TextEditor::slotItalic);
+    italic->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+                   "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *underlined = toolbar->addAction(QIcon(":/res/Icons/underline"), "Underlined");
     connect(underlined, &QAction::triggered, this, &TextEditor::slotUnderlined);
+    underlined->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+                   "При выделении слева направо, текст меняется каждый раз.");
+
+    QAction *crossedOut = toolbar->addAction(QIcon(":/res/Icons/cross-out"), "Cross");
+    connect(crossedOut, &QAction::triggered, this, &TextEditor::slotCrossedOut);
+    crossedOut->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+                             "При выделении слева направо, текст меняется каждый раз.");
 
     toolbar->addSeparator();
 
@@ -441,4 +483,125 @@ bool TextEditor::hasUnsavedChanges() {
     QString textContent = uiPtr->textBrowser->toPlainText();
 
     return (textContent != fileContent);
+}
+
+
+void TextEditor::setPaletteColors(){
+
+    redColorButton->setStyleSheet("background:red;");
+    orangeColorButton->setStyleSheet("background:orange;");
+    yellowColorButton->setStyleSheet("background:yellow;");
+    greenColorButton->setStyleSheet("background:green;");
+    azureColorButton->setStyleSheet("background:azure;");
+    blueColorButton->setStyleSheet("background:blue;");
+    purpleColorButton->setStyleSheet("background:purple;");
+    blackColorButton->setStyleSheet("background:black;");
+
+
+}
+
+void TextEditor::onRedColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(Qt::red);
+}
+
+
+void TextEditor::onOrangeColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(QColorConstants::Svg::orange);
+}
+
+
+void TextEditor::onYellowColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(Qt::yellow);
+}
+
+
+void TextEditor::onGreenColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(Qt::green);
+}
+
+
+void TextEditor::onAzureColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(QColorConstants::Svg::azure);
+}
+
+
+void TextEditor::onBlueColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(Qt::blue);
+}
+
+
+void TextEditor::onPurpleColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(QColorConstants::Svg::purple);
+}
+
+
+void TextEditor::onBlackColorButtonClicked()
+{
+    uiPtr->textBrowser->setTextColor(Qt::black);
+}
+
+void TextEditor::createColorPalette(qint32 x ,qint32 y , qint32 height , qint32 width){
+
+    if(window == NULL)  window = new QWidget(uiPtr->centralwidget);
+    window->setMaximumSize(height,width);
+    window->setGeometry(QRect(x,y,height,width));
+
+    redColorButton = new QPushButton(this);
+    QObject::connect(redColorButton,&QPushButton::clicked, this, &TextEditor::onRedColorButtonClicked);
+
+    orangeColorButton= new QPushButton(this);
+    QObject::connect(orangeColorButton,&QPushButton::clicked, this, &TextEditor::onOrangeColorButtonClicked);
+
+    yellowColorButton= new QPushButton(this);
+    QObject::connect(yellowColorButton,&QPushButton::clicked, this, &TextEditor::onYellowColorButtonClicked);
+
+    greenColorButton= new QPushButton(this);
+    QObject::connect(greenColorButton,&QPushButton::clicked, this, &TextEditor::onGreenColorButtonClicked);
+
+    azureColorButton= new QPushButton(this);
+    QObject::connect(azureColorButton,&QPushButton::clicked, this, &TextEditor::onAzureColorButtonClicked);
+
+    blueColorButton= new QPushButton(this);
+    QObject::connect(blueColorButton,&QPushButton::clicked, this, &TextEditor::onBlueColorButtonClicked);
+
+    purpleColorButton= new QPushButton(this);
+    QObject::connect(purpleColorButton,&QPushButton::clicked, this, &TextEditor::onPurpleColorButtonClicked);
+
+    blackColorButton= new QPushButton(this);
+    QObject::connect(blackColorButton,&QPushButton::clicked, this, &TextEditor::onBlackColorButtonClicked);
+
+
+    gridGroupBox = new QGroupBox(tr("Palette"),window);
+    colorPalette = new QGridLayout;
+    gridGroupBox->setLayout(colorPalette);
+
+    colorPalette->addWidget(redColorButton,0,0,Qt::AlignCenter);
+    colorPalette->addWidget(orangeColorButton,0,1,Qt::AlignCenter);
+    colorPalette->addWidget(yellowColorButton,0,2,Qt::AlignCenter);
+    colorPalette->addWidget(greenColorButton,0,3,Qt::AlignCenter);
+    colorPalette->addWidget(azureColorButton,1,0,Qt::AlignCenter);
+    colorPalette->addWidget(blueColorButton,1,1,Qt::AlignCenter);
+    colorPalette->addWidget(purpleColorButton,1,2,Qt::AlignCenter);
+    colorPalette->addWidget(blackColorButton,1,3,Qt::AlignCenter);
+
+    setPaletteColors();
+
+    if(window->isVisible()) hidePalette(window);
+    else showPalette(window);
+
+
+}
+
+void TextEditor::hidePalette(QWidget *window){
+    if(window !=NULL)  window->hide();
+}
+void TextEditor::showPalette(QWidget *window){
+    if(window !=NULL) window->show();
 }
