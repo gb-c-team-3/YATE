@@ -50,16 +50,32 @@ void TextEditor::slotFileNew()
 {
     if (hasUnsavedChanges()) {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to create a new file?",
-                                      QMessageBox::Yes|QMessageBox::No);
-
-        if (reply == QMessageBox::Yes) {
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you want to save them?", QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes)
+        {
+            slotFileSaveAs();               // if we made new file and choose to save changes - we save file, clear text area, path, file name in the header
             uiPtr->textBrowser->clear();
-            slotFileSaveAs();
+            file_path.clear();
+            QFileInfo fileInfo(file_path);
+            QString titleName = fileInfo.fileName();
+            slotRenameTitle(titleName);
         }
-    } else {
-        uiPtr->textBrowser->clear();
-        slotFileSaveAs();
+        else
+        {     
+            uiPtr->textBrowser->clear();    // if we choose not to save changes - we just clear  all (text area, path, name)
+            file_path.clear();
+            QFileInfo fileInfo(file_path);
+            QString titleName = fileInfo.fileName();
+            slotRenameTitle(titleName);
+        }
+    }
+    else
+    {
+        uiPtr->textBrowser->clear();        // if we opened existing file but want to make new file without any changes - we just clear all
+        file_path.clear();
+        QFileInfo fileInfo(file_path);
+        QString titleName = fileInfo.fileName();
+        slotRenameTitle(titleName);
     }
 }
 
@@ -75,6 +91,7 @@ void TextEditor::slotFileOpen()
     }
     QTextStream in(&file);
     QString text = in.readAll();
+    uiPtr->textBrowser->setText(text);      // we show the content of file in the textBrowser
     QFileInfo fileInfo(file_path);
     QString titleName = fileInfo.fileName();
     slotRenameTitle(titleName);
@@ -83,19 +100,13 @@ void TextEditor::slotFileOpen()
 
 void TextEditor::slotFileSave()
 {
-    if(uiPtr->textBrowser->toPlainText().length() > 0 && file_path.isEmpty()) {
-       slotFileSaveAs();
-       return;
-    }
-
     QFile file(file_path);
     if(!file.open(QFile::WriteOnly | QFile::Text))
     {
-        QMessageBox::warning(this, "Warning", "Cannot save the file");
-        return;
+        slotFileSaveAs();                   // if file doesnt exist yet we save it by "save as" fucntion, if already exists just save changes
     }
     QTextStream out(&file);
-    QString text = uiPtr->textBrowser->toPlainText();
+    QString text = uiPtr->textBrowser->toHtml(); // to save formating and images we change "toPlainText" into "toHtml"
     out << text;
     file.flush();
     file.close();
@@ -103,7 +114,7 @@ void TextEditor::slotFileSave()
 
 void TextEditor::slotFileSaveAs()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, "Save the file");
+    QString file_name = QFileDialog::getSaveFileName(this, "Save the file", "", "Text Files (*.txt)");  // saves to txt format
     QFile file(file_name);
     if(!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -112,7 +123,7 @@ void TextEditor::slotFileSaveAs()
     }
     file_path = file_name;
     QTextStream out(&file);
-    QString text = uiPtr->textBrowser->toPlainText();
+    QString text = uiPtr->textBrowser->toHtml(); // to save formating and images we change "toPlainText" into "toHtml"
     out << text;
     file.flush();
     file.close();
@@ -132,37 +143,37 @@ void TextEditor::slotPrintFile()
 
 void TextEditor::slotExitFile()
 {
-
+	QApplication::exit();
 }
 
 void TextEditor::slotUndo()
 {
-
+	uiPtr->textBrowser->undo();
 }
 
 void TextEditor::slotRedo()
 {
-
+	uiPtr->textBrowser->redo();
 }
 
 void TextEditor::slotCopy()
 {
-
+	uiPtr->textBrowser->copy();
 }
 
 void TextEditor::slotCut()
 {
-
+	uiPtr->textBrowser->cut();
 }
 
 void TextEditor::slotPaste()
 {
-
+	uiPtr->textBrowser->paste();
 }
 
 void TextEditor::slotSelectAll()
 {
-
+	uiPtr->textBrowser->selectAll();
 }
 
 void TextEditor::slotBold()
@@ -225,13 +236,17 @@ void TextEditor::slotFontColor()
 
 void TextEditor::slotInsertImage()
 {
-//   uiPtr->textBrowser->loadResource(QTextDocument::ImageResource, QFileDialog::getOpenFileName(this, "Open the file"));
-     //uiPtr->textBrowser->textCursor().insertImage(QFileDialog::getOpenFileName(this, "Open the file"));
-    QTextImageFormat *img_fmt = new QTextImageFormat();
-    img_fmt->setName(QFileDialog::getOpenFileName(this, "Open the file"));
-    img_fmt->setHeight(10);
-    img_fmt->setWidth(10);
-    uiPtr->textBrowser->textCursor().insertImage(*img_fmt);
+    QString file_path = QFileDialog::getOpenFileName(this, "Open the file");
+    if (file_path.isEmpty())
+    {
+        return;             // if user will want to cancel inserting image
+    }
+
+    QTextImageFormat img_fmt;
+    img_fmt.setName(file_path);
+    img_fmt.setHeight(30);  // made images a bit bigger for easier formating
+    img_fmt.setWidth(30);
+    uiPtr->textBrowser->textCursor().insertImage(img_fmt);
 }
 
 void TextEditor::slotIncreaseImage()
@@ -454,15 +469,18 @@ void TextEditor::closeEvent(QCloseEvent *event)
 {
     if (hasUnsavedChanges()) {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to quit?",
-                                      QMessageBox::Yes|QMessageBox::No);
-
-        if (reply == QMessageBox::No) {
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to quit?", QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::No) 
+	{
             event->ignore();
-        } else {
+        } 
+	else 
+	{
             event->accept();
         }
-    } else {
+    } 
+    else 
+    {
         event->accept();
     }
 }
