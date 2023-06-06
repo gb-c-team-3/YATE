@@ -31,12 +31,93 @@ TextEditor::TextEditor(QWidget *parent)
     slotRenameTitle("");
     setWindowIcon(QIcon(":/res/Icons/file"));
 
+    uiPtr->centralwidget->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::MinimumExpanding);
+
+    readConfig();
+    applyConfig();
 }
 
 TextEditor::~TextEditor()
 {
+    createConfig();
+
     delete uiPtr;
 }
+
+/*************************************
+ *
+ *          Configuration
+ *
+ *************************************/
+
+void TextEditor::readConfig(){
+    QFile file(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/config.txt");
+
+    if(!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, "Warning", "Cannot open config file");
+        return;
+    }
+
+    QTextStream in(&file);
+    configTXT = in.readAll();
+    file.close();
+
+}
+
+bool TextEditor::createConfig(){
+
+    // "C:/Users/<USER>/AppData/Local/Team3Editor"
+    QDir().mkdir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
+
+    QFile file((QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/config.txt"));
+
+    if(!file.open(QFile::WriteOnly ))
+    {
+        QMessageBox::warning(this, "Warning", "Cannot save config file");
+    }
+
+    QTextStream out(&file);
+    configTXT = QString::number(uiPtr->centralwidget->height()) + "_" + QString::number(uiPtr->centralwidget->width()) + "_";
+    out << configTXT;
+    file.flush();
+    file.close();
+    return true;
+}
+
+
+void TextEditor::applyConfig(){
+    QString buffer="";
+
+    for (int i = 0, separatorCount =0; i < configTXT.size(); ++i) {
+
+        if((separatorCount == 0) && (configTXT[i] != separator)){
+            buffer +=configTXT[i];
+        }else if((separatorCount == 0) && (configTXT[i] == separator)){
+            separatorCount +=1;
+            textEditorHeight = buffer.toInt();
+
+            i++;
+            buffer="";
+        }
+
+        if((separatorCount == 1) && (configTXT[i] != separator)){
+            buffer +=configTXT[i];
+        }else if ((separatorCount == 1) && (configTXT[i] == separator)){
+            separatorCount +=1;
+            textEditorWidth = buffer.toInt();
+
+            i++;
+            buffer="";
+        }
+    }
+
+    this->resize(textEditorWidth,textEditorHeight);
+}
+
+/*
+ * end configuration
+ */
 
 void TextEditor::slotRenameTitle(QString newName)
 {
