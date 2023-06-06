@@ -550,7 +550,7 @@ void TextEditor::onAzureColorButtonClicked()
 
 void TextEditor::onBlueColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(Qt::blue);
+    uiPtr->textEdit->setTextColor(Qt::blue);
 }
 
 
