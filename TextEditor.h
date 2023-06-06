@@ -9,6 +9,7 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QGroupBox>
+#include <QStandardPaths>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class TextEditor; }
@@ -88,6 +89,16 @@ private:
     void createColorPalette(qint32 x ,qint32 y , qint32 width=200 , qint32 height=100);
     void hidePalette(QWidget *window);
     void showPalette(QWidget *window);
+
+    //Config file
+
+    qint32 textEditorHeight=700;
+    qint32 textEditorWidth=700;
+    QString separator = "_";
+    QString configTXT="";
+    void readConfig();
+    void applyConfig();
+    bool createConfig();
 
 };
 #endif // TEXTEDITOR_H
