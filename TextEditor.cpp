@@ -304,7 +304,13 @@ void TextEditor::slotCrossedOut()
 
 void TextEditor::slotFontStyle()
 {
-
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, this);
+    if (ok)
+    {
+        uiPtr->textEdit->setCurrentFont(font);
+    }
+    else return;
 }
 
 void TextEditor::slotFontColor()
