@@ -20,8 +20,10 @@
 TextEditor::TextEditor(QWidget *parent)
     : QMainWindow(parent), uiPtr(new Ui::TextEditor)
 {
+    QFont font("Corbel", 10);
     uiPtr->setupUi(this);
-    uiPtr->menubar->setFont(tr("Corbel"));
+    uiPtr->menubar->setFont(font);
+    uiPtr->menubar->setStyleSheet("color:#242424}");
     uiPtr->menubar->addMenu(menuConfig());
     uiPtr->menubar->addMenu(editMenu());
     uiPtr->menubar->addMenu(formatMenu());
@@ -29,7 +31,7 @@ TextEditor::TextEditor(QWidget *parent)
     uiPtr->menubar->addMenu(viewMenu());
     uiPtr->toolBar->addWidget(toolbar());
     slotRenameTitle("");
-    setWindowIcon(QIcon(":/res/Icons/file"));
+    setWindowIcon(QIcon(":/res/Icons/file_1"));
 
     uiPtr->centralwidget->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::MinimumExpanding);
 
@@ -406,8 +408,9 @@ void TextEditor::slotLightMode()
 
 QMenu *TextEditor::menuConfig()
 {
+    QFont font("Corbel", 10);
     QMenu *menuFilePtr = new QMenu(this);
-    menuFilePtr->setFont(tr("Corbel"));
+    menuFilePtr->setFont(font);
     menuFilePtr->setTitle(tr("File"));
     menuFilePtr->addAction(tr("New"), QKeySequence::New, this, &TextEditor::slotFileNew)->setIcon(QIcon(":/res/Icons/file")); //Ctrl+N
     menuFilePtr->addAction(tr("Open"), QKeySequence::Open, this, &TextEditor::slotFileOpen)->setIcon(QIcon(":/res/Icons/folder")); //Ctrl+O
@@ -421,8 +424,9 @@ QMenu *TextEditor::menuConfig()
 
 QMenu *TextEditor::editMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuEditPtr = new QMenu(this);
-    menuEditPtr->setFont(tr("Corbel"));
+    menuEditPtr->setFont(font);
     menuEditPtr->setTitle(tr("Edit"));
     menuEditPtr->addAction(tr("Undo"), QKeySequence::Undo, this, &TextEditor::slotUndo)->setIcon(QIcon(":/res/Icons/turn-left")); //Ctrl+Z
     menuEditPtr->addAction(tr("Redo"), QKeySequence::Redo, this, &TextEditor::slotRedo)->setIcon(QIcon(":/res/Icons/forward")); //Ctrl+Y
@@ -436,8 +440,9 @@ QMenu *TextEditor::editMenu()
 
 QMenu *TextEditor::formatMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuFormatPtr = new QMenu(this);
-    menuFormatPtr->setFont(tr("Corbel"));
+    menuFormatPtr->setFont(font);
     menuFormatPtr->setTitle(tr("Format"));
     menuFormatPtr->addAction(tr("Bold"), QKeySequence::Bold, this, &TextEditor::slotBold)->setIcon(QIcon(":/res/Icons/bold")); //Ctrl+B
     menuFormatPtr->addAction(tr("Italic"), QKeySequence::Italic, this, &TextEditor::slotItalic)->setIcon(QIcon(":/res/Icons/italic")); //Ctrl+I
@@ -451,8 +456,9 @@ QMenu *TextEditor::formatMenu()
 
 QMenu *TextEditor::insertMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuInsertPtr = new QMenu(this);
-    menuInsertPtr->setFont(tr("Corbel"));
+    menuInsertPtr->setFont(font);
     menuInsertPtr->setTitle(tr("Insert"));
     menuInsertPtr->addAction(tr("Image"), this, &TextEditor::slotInsertImage)->setIcon(QIcon(":/res/Icons/insert-picture-icon"));
     menuInsertPtr->addAction(tr("Table"), this, &TextEditor::slotInsertTable)->setIcon(QIcon(":/res/Icons/tablet"));
@@ -461,8 +467,9 @@ QMenu *TextEditor::insertMenu()
 
 QMenu *TextEditor::viewMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuViewPtr = new QMenu(this);
-    menuViewPtr->setFont(tr("Corbel"));
+    menuViewPtr->setFont(font);
     menuViewPtr->setTitle(tr("View"));
     menuViewPtr->addAction(tr("Dark mode"), this, &TextEditor::slotDarkMode)->setIcon(QIcon(":/res/Icons/file"));
     menuViewPtr->addAction(tr("Light mode"), this, &TextEditor::slotLightMode)->setIcon(QIcon(":/res/Icons/file_white"));
@@ -509,22 +516,22 @@ QToolBar *TextEditor::toolbar()
 
     QAction *bold = toolbar->addAction(QIcon(":/res/Icons/bold"), "Bold");
     connect(bold, &QAction::triggered, this, &TextEditor::slotBold);
-    bold->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    bold->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                    "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *italic = toolbar->addAction(QIcon(":/res/Icons/italic"), "Italic");
     connect(italic, &QAction::triggered, this, &TextEditor::slotItalic);
-    italic->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    italic->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                    "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *underlined = toolbar->addAction(QIcon(":/res/Icons/underline"), "Underlined");
     connect(underlined, &QAction::triggered, this, &TextEditor::slotUnderlined);
-    underlined->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    underlined->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                    "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *crossedOut = toolbar->addAction(QIcon(":/res/Icons/cross-out"), "Cross");
     connect(crossedOut, &QAction::triggered, this, &TextEditor::slotCrossedOut);
-    crossedOut->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    crossedOut->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                              "При выделении слева направо, текст меняется каждый раз.");
 
     toolbar->addSeparator();
@@ -540,10 +547,10 @@ QToolBar *TextEditor::toolbar()
     QAction *iamge = toolbar->addAction(QIcon(":/res/Icons/insert-picture-icon"), "Insert image");
     connect(iamge, &QAction::triggered, this, &TextEditor::slotInsertImage);
 
-    QAction *image_up = toolbar->addAction(QIcon(":/res/Icons/picture-increase.png"), "Insert image");
+    QAction *image_up = toolbar->addAction(QIcon(":/res/Icons/picture-increase.png"), "Increase image");
     connect(image_up, &QAction::triggered, this, &TextEditor::slotIncreaseImage);
 
-    QAction *image_down = toolbar->addAction(QIcon(":/res/Icons/picture-decrease.png"), "Insert image");
+    QAction *image_down = toolbar->addAction(QIcon(":/res/Icons/picture-decrease.png"), "Reduce image");
     connect(image_down, &QAction::triggered, this, &TextEditor::slotDecreaseImage);
 
     QAction *tablet = toolbar->addAction(QIcon(":/res/Icons/tablet"), "Insert table");
@@ -608,48 +615,56 @@ void TextEditor::setPaletteColors(){
 void TextEditor::onRedColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(Qt::red);
+    hidePalette(window);
 }
 
 
 void TextEditor::onOrangeColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(QColorConstants::Svg::orange);
+    hidePalette(window);
 }
 
 
 void TextEditor::onYellowColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(Qt::yellow);
+    hidePalette(window);
 }
 
 
 void TextEditor::onGreenColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(Qt::green);
+    hidePalette(window);
 }
 
 
 void TextEditor::onAzureColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(QColorConstants::Svg::azure);
+    hidePalette(window);
 }
 
 
 void TextEditor::onBlueColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(Qt::blue);
+    hidePalette(window);
 }
 
 
 void TextEditor::onPurpleColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(QColorConstants::Svg::purple);
+    hidePalette(window);
 }
 
 
 void TextEditor::onBlackColorButtonClicked()
 {
     uiPtr->textEdit->setTextColor(Qt::black);
+    hidePalette(window);
 }
 
 void TextEditor::createColorPalette(qint32 x ,qint32 y , qint32 height , qint32 width){
@@ -705,7 +720,7 @@ void TextEditor::createColorPalette(qint32 x ,qint32 y , qint32 height , qint32 
 }
 
 void TextEditor::hidePalette(QWidget *window){
-    if(window !=NULL)  window->hide();
+    if(window !=NULL && window->isVisible())  window->hide();
 }
 void TextEditor::showPalette(QWidget *window){
     if(window !=NULL) window->show();
