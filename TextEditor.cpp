@@ -20,8 +20,10 @@
 TextEditor::TextEditor(QWidget *parent)
     : QMainWindow(parent), uiPtr(new Ui::TextEditor)
 {
+    QFont font("Corbel", 10);
     uiPtr->setupUi(this);
-    uiPtr->menubar->setFont(tr("Corbel"));
+    uiPtr->menubar->setFont(font);
+    uiPtr->menubar->setStyleSheet("color:#242424}");
     uiPtr->menubar->addMenu(menuConfig());
     uiPtr->menubar->addMenu(editMenu());
     uiPtr->menubar->addMenu(formatMenu());
@@ -29,14 +31,95 @@ TextEditor::TextEditor(QWidget *parent)
     uiPtr->menubar->addMenu(viewMenu());
     uiPtr->toolBar->addWidget(toolbar());
     slotRenameTitle("");
-    setWindowIcon(QIcon(":/res/Icons/file"));
+    setWindowIcon(QIcon(":/res/Icons/file_1"));
 
+    uiPtr->centralwidget->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::MinimumExpanding);
+
+    readConfig();
+    applyConfig();
 }
 
 TextEditor::~TextEditor()
 {
+    createConfig();
+
     delete uiPtr;
 }
+
+/*************************************
+ *
+ *          Configuration
+ *
+ *************************************/
+
+void TextEditor::readConfig(){
+    QFile file(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/config.txt");
+
+    if(!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, "Warning", "Cannot open config file");
+        return;
+    }
+
+    QTextStream in(&file);
+    configTXT = in.readAll();
+    file.close();
+
+}
+
+bool TextEditor::createConfig(){
+
+    // "C:/Users/<USER>/AppData/Local/Team3Editor"
+    QDir().mkdir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
+
+    QFile file((QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/config.txt"));
+
+    if(!file.open(QFile::WriteOnly ))
+    {
+        QMessageBox::warning(this, "Warning", "Cannot save config file");
+    }
+
+    QTextStream out(&file);
+    configTXT = QString::number(uiPtr->centralwidget->height()) + "_" + QString::number(uiPtr->centralwidget->width()) + "_";
+    out << configTXT;
+    file.flush();
+    file.close();
+    return true;
+}
+
+
+void TextEditor::applyConfig(){
+    QString buffer="";
+
+    for (int i = 0, separatorCount =0; i < configTXT.size(); ++i) {
+
+        if((separatorCount == 0) && (configTXT[i] != separator)){
+            buffer +=configTXT[i];
+        }else if((separatorCount == 0) && (configTXT[i] == separator)){
+            separatorCount +=1;
+            textEditorHeight = buffer.toInt();
+
+            i++;
+            buffer="";
+        }
+
+        if((separatorCount == 1) && (configTXT[i] != separator)){
+            buffer +=configTXT[i];
+        }else if ((separatorCount == 1) && (configTXT[i] == separator)){
+            separatorCount +=1;
+            textEditorWidth = buffer.toInt();
+
+            i++;
+            buffer="";
+        }
+    }
+
+    this->resize(textEditorWidth,textEditorHeight);
+}
+
+/*
+ * end configuration
+ */
 
 void TextEditor::slotRenameTitle(QString newName)
 {
@@ -50,16 +133,32 @@ void TextEditor::slotFileNew()
 {
     if (hasUnsavedChanges()) {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to create a new file?",
-                                      QMessageBox::Yes|QMessageBox::No);
-
-        if (reply == QMessageBox::Yes) {
-            uiPtr->textBrowser->clear();
-            slotFileSaveAs();
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you want to save them?", QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes)
+        {
+            slotFileSaveAs();               // if we made new file and choose to save changes - we save file, clear text area, path, file name in the header
+            uiPtr->textEdit->clear();
+            file_path.clear();
+            QFileInfo fileInfo(file_path);
+            QString titleName = fileInfo.fileName();
+            slotRenameTitle(titleName);
         }
-    } else {
-        uiPtr->textBrowser->clear();
-        slotFileSaveAs();
+        else
+        {     
+            uiPtr->textEdit->clear();    // if we choose not to save changes - we just clear  all (text area, path, name)
+            file_path.clear();
+            QFileInfo fileInfo(file_path);
+            QString titleName = fileInfo.fileName();
+            slotRenameTitle(titleName);
+        }
+    }
+    else
+    {
+        uiPtr->textEdit->clear();        // if we opened existing file but want to make new file without any changes - we just clear all
+        file_path.clear();
+        QFileInfo fileInfo(file_path);
+        QString titleName = fileInfo.fileName();
+        slotRenameTitle(titleName);
     }
 }
 
@@ -75,6 +174,7 @@ void TextEditor::slotFileOpen()
     }
     QTextStream in(&file);
     QString text = in.readAll();
+    uiPtr->textEdit->setText(text);      // we show the content of file in the textBrowser
     QFileInfo fileInfo(file_path);
     QString titleName = fileInfo.fileName();
     slotRenameTitle(titleName);
@@ -83,19 +183,13 @@ void TextEditor::slotFileOpen()
 
 void TextEditor::slotFileSave()
 {
-    if(uiPtr->textBrowser->toPlainText().length() > 0 && file_path.isEmpty()) {
-       slotFileSaveAs();
-       return;
-    }
-
     QFile file(file_path);
     if(!file.open(QFile::WriteOnly | QFile::Text))
     {
-        QMessageBox::warning(this, "Warning", "Cannot save the file");
-        return;
+        slotFileSaveAs();                   // if file doesnt exist yet we save it by "save as" fucntion, if already exists just save changes
     }
     QTextStream out(&file);
-    QString text = uiPtr->textBrowser->toPlainText();
+    QString text = uiPtr->textEdit->toHtml(); // to save formating and images we change "toPlainText" into "toHtml"
     out << text;
     file.flush();
     file.close();
@@ -103,7 +197,7 @@ void TextEditor::slotFileSave()
 
 void TextEditor::slotFileSaveAs()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, "Save the file");
+    QString file_name = QFileDialog::getSaveFileName(this, "Save the file", "", "Text Files (*.txt)");  // saves to txt format
     QFile file(file_name);
     if(!file.open(QFile::WriteOnly | QFile::Text))
     {
@@ -112,7 +206,7 @@ void TextEditor::slotFileSaveAs()
     }
     file_path = file_name;
     QTextStream out(&file);
-    QString text = uiPtr->textBrowser->toPlainText();
+    QString text = uiPtr->textEdit->toHtml(); // to save formating and images we change "toPlainText" into "toHtml"
     out << text;
     file.flush();
     file.close();
@@ -127,92 +221,98 @@ void TextEditor::slotPrintFile()
     {
         return;
     }
-    uiPtr->textBrowser->print(&printer);
+    uiPtr->textEdit->print(&printer);
 }
 
 void TextEditor::slotExitFile()
 {
-
+	QApplication::exit();
 }
 
 void TextEditor::slotUndo()
 {
-
+	uiPtr->textEdit->undo();
 }
 
 void TextEditor::slotRedo()
 {
-
+	uiPtr->textEdit->redo();
 }
 
 void TextEditor::slotCopy()
 {
-
+	uiPtr->textEdit->copy();
 }
 
 void TextEditor::slotCut()
 {
-
+	uiPtr->textEdit->cut();
 }
 
 void TextEditor::slotPaste()
 {
-
+	uiPtr->textEdit->paste();
 }
 
 void TextEditor::slotSelectAll()
 {
-
+	uiPtr->textEdit->selectAll();
 }
 
 void TextEditor::slotBold()
 {
-    if( uiPtr->textBrowser->fontWeight() == QFont::Normal) {
-        uiPtr->textBrowser->setFontWeight(QFont::Bold);
+    if( uiPtr->textEdit->fontWeight() == QFont::Normal) {
+        uiPtr->textEdit->setFontWeight(QFont::Bold);
     }
     else{
-        uiPtr->textBrowser->setFontWeight(QFont::Normal);
+        uiPtr->textEdit->setFontWeight(QFont::Normal);
     }
 }
 
 void TextEditor::slotItalic()
 {
-    if(uiPtr->textBrowser->fontItalic() == true) {
-        uiPtr->textBrowser->setFontItalic(false);
+    if(uiPtr->textEdit->fontItalic() == true) {
+        uiPtr->textEdit->setFontItalic(false);
     }
     else{
-        uiPtr->textBrowser->setFontItalic(true);
+        uiPtr->textEdit->setFontItalic(true);
     }
 }
 
 void TextEditor::slotUnderlined()
 {
-    if( uiPtr->textBrowser->fontUnderline() == true) {
-        uiPtr->textBrowser->setFontUnderline(false);
+    if( uiPtr->textEdit->fontUnderline() == true) {
+        uiPtr->textEdit->setFontUnderline(false);
     }
     else{
-        uiPtr->textBrowser->setFontUnderline(true);
+        uiPtr->textEdit->setFontUnderline(true);
     }
 }
 
 void TextEditor::slotCrossedOut()
 {
-    QFont font_ = uiPtr->textBrowser->currentFont();
+    QFont font_ = uiPtr->textEdit->currentFont();
 
-    if( uiPtr->textBrowser->currentFont().strikeOut() == true) {
+    if( uiPtr->textEdit->currentFont().strikeOut() == true) {
         font_.setStrikeOut(false);
-        uiPtr->textBrowser->setCurrentFont(font_);
+        uiPtr->textEdit->setCurrentFont(font_);
     }
     else{
         font_.setStrikeOut(true);
-        uiPtr->textBrowser->setCurrentFont(font_);
+        uiPtr->textEdit->setCurrentFont(font_);
     }
 
 }
 
 void TextEditor::slotFontStyle()
 {
-
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, this);
+    if (ok)
+    {
+        uiPtr->textEdit->setCurrentFont(font);
+    }
+    else return;
 }
 
 void TextEditor::slotFontColor()
@@ -225,18 +325,22 @@ void TextEditor::slotFontColor()
 
 void TextEditor::slotInsertImage()
 {
-//   uiPtr->textBrowser->loadResource(QTextDocument::ImageResource, QFileDialog::getOpenFileName(this, "Open the file"));
-     //uiPtr->textBrowser->textCursor().insertImage(QFileDialog::getOpenFileName(this, "Open the file"));
-    QTextImageFormat *img_fmt = new QTextImageFormat();
-    img_fmt->setName(QFileDialog::getOpenFileName(this, "Open the file"));
-    img_fmt->setHeight(10);
-    img_fmt->setWidth(10);
-    uiPtr->textBrowser->textCursor().insertImage(*img_fmt);
+    static const qreal BASE_IMAGE_SIZE = 100;
+    QString file_path = QFileDialog::getOpenFileName(this, "Open the file");
+    if (file_path.isEmpty())
+    {
+        return;             // if user will want to cancel inserting image
+    }
+    QTextImageFormat img_fmt;
+    img_fmt.setName(file_path);
+    img_fmt.setHeight(BASE_IMAGE_SIZE);  // made images a bit bigger for easier formating
+    img_fmt.setWidth(BASE_IMAGE_SIZE);
+    uiPtr->textEdit->textCursor().insertImage(img_fmt);
 }
 
 void TextEditor::slotIncreaseImage()
 {
-    QTextBlock currentBlock = uiPtr->textBrowser->textCursor().block();
+    QTextBlock currentBlock = uiPtr->textEdit->textCursor().block();
     QTextBlock::iterator it;
     static const double INCREASE_STEP = 10.0;
     for (it = currentBlock.begin(); !(it.atEnd()); ++it)
@@ -250,9 +354,9 @@ void TextEditor::slotIncreaseImage()
                  newImageFormat.setWidth(newImageFormat.width()+ INCREASE_STEP);
                  newImageFormat.setHeight(newImageFormat.height()+ INCREASE_STEP);
 
-                 QTextCursor coursorPtr = uiPtr->textBrowser->textCursor();
-                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionStart());
-                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionEnd(), QTextCursor::KeepAnchor);
+                 QTextCursor coursorPtr = uiPtr->textEdit->textCursor();
+                 coursorPtr.setPosition(uiPtr->textEdit->textCursor().selectionStart());
+                 coursorPtr.setPosition(uiPtr->textEdit->textCursor().selectionEnd(), QTextCursor::KeepAnchor);
                  coursorPtr.setCharFormat(newImageFormat);
              }
          }
@@ -261,7 +365,7 @@ void TextEditor::slotIncreaseImage()
 
 void TextEditor::slotDecreaseImage()
 {
-    QTextBlock currentBlock = uiPtr->textBrowser->textCursor().block();
+    QTextBlock currentBlock = uiPtr->textEdit->textCursor().block();
     QTextBlock::iterator it;
     static const double DECREASE_STEP = 10.0;
     for (it = currentBlock.begin(); !(it.atEnd()); ++it)
@@ -278,9 +382,9 @@ void TextEditor::slotDecreaseImage()
                     newImageFormat.setHeight(newImageFormat.height()-DECREASE_STEP);
                  }
 
-                 QTextCursor coursorPtr = uiPtr->textBrowser->textCursor();
-                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionStart());
-                 coursorPtr.setPosition(uiPtr->textBrowser->textCursor().selectionEnd(), QTextCursor::KeepAnchor);
+                 QTextCursor coursorPtr = uiPtr->textEdit->textCursor();
+                 coursorPtr.setPosition(uiPtr->textEdit->textCursor().selectionStart());
+                 coursorPtr.setPosition(uiPtr->textEdit->textCursor().selectionEnd(), QTextCursor::KeepAnchor);
                  coursorPtr.setCharFormat(newImageFormat);
              }
          }
@@ -304,8 +408,9 @@ void TextEditor::slotLightMode()
 
 QMenu *TextEditor::menuConfig()
 {
+    QFont font("Corbel", 10);
     QMenu *menuFilePtr = new QMenu(this);
-    menuFilePtr->setFont(tr("Corbel"));
+    menuFilePtr->setFont(font);
     menuFilePtr->setTitle(tr("File"));
     menuFilePtr->addAction(tr("New"), QKeySequence::New, this, &TextEditor::slotFileNew)->setIcon(QIcon(":/res/Icons/file")); //Ctrl+N
     menuFilePtr->addAction(tr("Open"), QKeySequence::Open, this, &TextEditor::slotFileOpen)->setIcon(QIcon(":/res/Icons/folder")); //Ctrl+O
@@ -319,8 +424,9 @@ QMenu *TextEditor::menuConfig()
 
 QMenu *TextEditor::editMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuEditPtr = new QMenu(this);
-    menuEditPtr->setFont(tr("Corbel"));
+    menuEditPtr->setFont(font);
     menuEditPtr->setTitle(tr("Edit"));
     menuEditPtr->addAction(tr("Undo"), QKeySequence::Undo, this, &TextEditor::slotUndo)->setIcon(QIcon(":/res/Icons/turn-left")); //Ctrl+Z
     menuEditPtr->addAction(tr("Redo"), QKeySequence::Redo, this, &TextEditor::slotRedo)->setIcon(QIcon(":/res/Icons/forward")); //Ctrl+Y
@@ -334,8 +440,9 @@ QMenu *TextEditor::editMenu()
 
 QMenu *TextEditor::formatMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuFormatPtr = new QMenu(this);
-    menuFormatPtr->setFont(tr("Corbel"));
+    menuFormatPtr->setFont(font);
     menuFormatPtr->setTitle(tr("Format"));
     menuFormatPtr->addAction(tr("Bold"), QKeySequence::Bold, this, &TextEditor::slotBold)->setIcon(QIcon(":/res/Icons/bold")); //Ctrl+B
     menuFormatPtr->addAction(tr("Italic"), QKeySequence::Italic, this, &TextEditor::slotItalic)->setIcon(QIcon(":/res/Icons/italic")); //Ctrl+I
@@ -349,8 +456,9 @@ QMenu *TextEditor::formatMenu()
 
 QMenu *TextEditor::insertMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuInsertPtr = new QMenu(this);
-    menuInsertPtr->setFont(tr("Corbel"));
+    menuInsertPtr->setFont(font);
     menuInsertPtr->setTitle(tr("Insert"));
     menuInsertPtr->addAction(tr("Image"), this, &TextEditor::slotInsertImage)->setIcon(QIcon(":/res/Icons/insert-picture-icon"));
     menuInsertPtr->addAction(tr("Table"), this, &TextEditor::slotInsertTable)->setIcon(QIcon(":/res/Icons/tablet"));
@@ -359,8 +467,9 @@ QMenu *TextEditor::insertMenu()
 
 QMenu *TextEditor::viewMenu()
 {
+    QFont font("Corbel", 10);
     QMenu *menuViewPtr = new QMenu(this);
-    menuViewPtr->setFont(tr("Corbel"));
+    menuViewPtr->setFont(font);
     menuViewPtr->setTitle(tr("View"));
     menuViewPtr->addAction(tr("Dark mode"), this, &TextEditor::slotDarkMode)->setIcon(QIcon(":/res/Icons/file"));
     menuViewPtr->addAction(tr("Light mode"), this, &TextEditor::slotLightMode)->setIcon(QIcon(":/res/Icons/file_white"));
@@ -407,22 +516,22 @@ QToolBar *TextEditor::toolbar()
 
     QAction *bold = toolbar->addAction(QIcon(":/res/Icons/bold"), "Bold");
     connect(bold, &QAction::triggered, this, &TextEditor::slotBold);
-    bold->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    bold->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                    "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *italic = toolbar->addAction(QIcon(":/res/Icons/italic"), "Italic");
     connect(italic, &QAction::triggered, this, &TextEditor::slotItalic);
-    italic->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    italic->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                    "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *underlined = toolbar->addAction(QIcon(":/res/Icons/underline"), "Underlined");
     connect(underlined, &QAction::triggered, this, &TextEditor::slotUnderlined);
-    underlined->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    underlined->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                    "При выделении слева направо, текст меняется каждый раз.");
 
     QAction *crossedOut = toolbar->addAction(QIcon(":/res/Icons/cross-out"), "Cross");
     connect(crossedOut, &QAction::triggered, this, &TextEditor::slotCrossedOut);
-    crossedOut->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии."
+    crossedOut->setStatusTip("При выделении текста справа налево текст меняется только один раз при нажатии. "
                              "При выделении слева направо, текст меняется каждый раз.");
 
     toolbar->addSeparator();
@@ -438,10 +547,10 @@ QToolBar *TextEditor::toolbar()
     QAction *iamge = toolbar->addAction(QIcon(":/res/Icons/insert-picture-icon"), "Insert image");
     connect(iamge, &QAction::triggered, this, &TextEditor::slotInsertImage);
 
-    QAction *image_up = toolbar->addAction(QIcon(":/res/Icons/picture-increase.png"), "Insert image");
+    QAction *image_up = toolbar->addAction(QIcon(":/res/Icons/picture-increase.png"), "Increase image");
     connect(image_up, &QAction::triggered, this, &TextEditor::slotIncreaseImage);
 
-    QAction *image_down = toolbar->addAction(QIcon(":/res/Icons/picture-decrease.png"), "Insert image");
+    QAction *image_down = toolbar->addAction(QIcon(":/res/Icons/picture-decrease.png"), "Reduce image");
     connect(image_down, &QAction::triggered, this, &TextEditor::slotDecreaseImage);
 
     QAction *tablet = toolbar->addAction(QIcon(":/res/Icons/tablet"), "Insert table");
@@ -454,21 +563,24 @@ void TextEditor::closeEvent(QCloseEvent *event)
 {
     if (hasUnsavedChanges()) {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to quit?",
-                                      QMessageBox::Yes|QMessageBox::No);
-
-        if (reply == QMessageBox::No) {
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to quit?", QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::No) 
+	{
             event->ignore();
-        } else {
+        } 
+	else 
+	{
             event->accept();
         }
-    } else {
+    } 
+    else 
+    {
         event->accept();
     }
 }
 
 bool TextEditor::hasUnsavedChanges() {
-    if(uiPtr->textBrowser->toPlainText().length() > 0 && file_path.isEmpty()) {
+    if(uiPtr->textEdit->toPlainText().length() > 0 && file_path.isEmpty()) {
         return true;
     }
 
@@ -480,7 +592,7 @@ bool TextEditor::hasUnsavedChanges() {
 
     QTextStream in(&file);
     QString fileContent = in.readAll();
-    QString textContent = uiPtr->textBrowser->toPlainText();
+    QString textContent = uiPtr->textEdit->toPlainText();
 
     return (textContent != fileContent);
 }
@@ -502,49 +614,57 @@ void TextEditor::setPaletteColors(){
 
 void TextEditor::onRedColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(Qt::red);
+    uiPtr->textEdit->setTextColor(Qt::red);
+    hidePalette(window);
 }
 
 
 void TextEditor::onOrangeColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(QColorConstants::Svg::orange);
+    uiPtr->textEdit->setTextColor(QColorConstants::Svg::orange);
+    hidePalette(window);
 }
 
 
 void TextEditor::onYellowColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(Qt::yellow);
+    uiPtr->textEdit->setTextColor(Qt::yellow);
+    hidePalette(window);
 }
 
 
 void TextEditor::onGreenColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(Qt::green);
+    uiPtr->textEdit->setTextColor(Qt::green);
+    hidePalette(window);
 }
 
 
 void TextEditor::onAzureColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(QColorConstants::Svg::azure);
+    uiPtr->textEdit->setTextColor(QColorConstants::Svg::azure);
+    hidePalette(window);
 }
 
 
 void TextEditor::onBlueColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(Qt::blue);
+    uiPtr->textEdit->setTextColor(Qt::blue);
+    hidePalette(window);
 }
 
 
 void TextEditor::onPurpleColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(QColorConstants::Svg::purple);
+    uiPtr->textEdit->setTextColor(QColorConstants::Svg::purple);
+    hidePalette(window);
 }
 
 
 void TextEditor::onBlackColorButtonClicked()
 {
-    uiPtr->textBrowser->setTextColor(Qt::black);
+    uiPtr->textEdit->setTextColor(Qt::black);
+    hidePalette(window);
 }
 
 void TextEditor::createColorPalette(qint32 x ,qint32 y , qint32 height , qint32 width){
@@ -600,7 +720,7 @@ void TextEditor::createColorPalette(qint32 x ,qint32 y , qint32 height , qint32 
 }
 
 void TextEditor::hidePalette(QWidget *window){
-    if(window !=NULL)  window->hide();
+    if(window !=NULL && window->isVisible())  window->hide();
 }
 void TextEditor::showPalette(QWidget *window){
     if(window !=NULL) window->show();
