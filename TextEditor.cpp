@@ -204,12 +204,16 @@ void TextEditor::slotInsertTable()
 
 void TextEditor::slotDarkMode()
 {
-    setStyleSheet("QPushButton{background-color:black; color:white}"
-                  "QMainWindow{background-color:black;}"
-                  "QTextEdit{background-color:black;color:white}"
-                  "QListView{background-color:black;color:white}"
-                  "QMenuBar{background-color:black;color:white}"
-                  );
+    setStyleSheet("QPushButton{background-color:#3b3b3b; color:white}"
+                      "QMainWindow{background-color:#212121;}"
+                      "QTextEdit{background-color:#212121;color:white}"
+                      "QListView{background-color:#2e2e2e;color:white}"
+                      "QMenuBar{background-color:#3b3b3b;color:white}"
+                      "QMenu{background-color:#3b3b3b;color:white}"
+                      "QMessageBox{background-color:#818181;color:white}"
+                      "QToolBar{background-color:#2e2e2e;color:white}"
+                      );
+    uiPtr->menubar->setStyleSheet("color:white");
 }
 
 void TextEditor::slotLightMode()
@@ -219,7 +223,11 @@ void TextEditor::slotLightMode()
                   "QTextEdit{background-color:white;color:black}"
                   "QListView{background-color:white;color:black}"
                   "QMenuBar{background-color:white;color:black}"
+                  "QMenu{background-color:white;color:black}"
+                  "QMessageBox{background-color:white;color:black}"
+                  "QToolBar{background-color:white;color:black}"
                   );
+    uiPtr->menubar->setStyleSheet("color:black");
 }
 
 QMenu *TextEditor::menuConfig()
