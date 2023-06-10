@@ -49,6 +49,7 @@ private slots:
     void slotInsertTable();
     void slotDarkMode();
     void slotLightMode();
+    void slotUnsavedStarSet();
     void closeEvent(QCloseEvent *event);
     bool hasUnsavedChanges();
 
@@ -72,6 +73,7 @@ private:
     QMenu *insertMenu();
     QMenu *viewMenu();
 
+    bool isFileSaved = true;
     //Palette
     QWidget *window = NULL;
     QGroupBox *gridGroupBox;
