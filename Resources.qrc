@@ -1,48 +1,29 @@
 <RCC>
     <qresource prefix="/res">
         <file>Icons/bold.png</file>
-        <file>Icons/bold_white.png</file>
         <file>Icons/checkbox.png</file>
-        <file>Icons/checkbox_white.png</file>
         <file>Icons/color-text.png</file>
-        <file>Icons/color-text_white.png</file>
         <file>Icons/copy.png</file>
-        <file>Icons/copy_white.png</file>
         <file>Icons/cross-out.png</file>
-        <file>Icons/cross-out_white.png</file>
         <file>Icons/diskette.png</file>
-        <file>Icons/diskette_white.png</file>
         <file>Icons/file.png</file>
-        <file>Icons/file_white.png</file>
+        <file>Icons/file_1.png</file>
         <file>Icons/folder.png</file>
-        <file>Icons/folder_white.png</file>
         <file>Icons/font-adjustment.png</file>
-        <file>Icons/font-adjustment_white.png</file>
         <file>Icons/forward.png</file>
-        <file>Icons/forward_white.png</file>
         <file>Icons/insert-picture-icon.png</file>
-        <file>Icons/insert-picture-icon_white.png</file>
         <file>Icons/italic.png</file>
-        <file>Icons/italic_white.png</file>
         <file>Icons/logout.png</file>
-        <file>Icons/logout_white.png</file>
         <file>Icons/paste.png</file>
-        <file>Icons/paste_white.png</file>
-        <file>Icons/printer.png</file>
-        <file>Icons/printer_white.png</file>
-        <file>Icons/save-as.png</file>
-        <file>Icons/save-as_white.png</file>
-        <file>Icons/scissors.png</file>
-        <file>Icons/scissors_white.png</file>
-        <file>Icons/tablet.png</file>
-        <file>Icons/tablet_white.png</file>
-        <file>Icons/task.png</file>
-        <file>Icons/task_white.png</file>
-        <file>Icons/turn-left.png</file>
-        <file>Icons/turn-left_white.png</file>
-        <file>Icons/underline.png</file>
-        <file>Icons/underline_white.png</file>
         <file>Icons/picture-decrease.png</file>
         <file>Icons/picture-increase.png</file>
+        <file>Icons/printer.png</file>
+        <file>Icons/save-as.png</file>
+        <file>Icons/scissors.png</file>
+        <file>Icons/tablet.png</file>
+        <file>Icons/task.png</file>
+        <file>Icons/turn-left.png</file>
+        <file>Icons/underline.png</file>
+        <file>Icons/file_white.png</file>
     </qresource>
 </RCC>
