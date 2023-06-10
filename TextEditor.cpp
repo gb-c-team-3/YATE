@@ -31,12 +31,14 @@ TextEditor::TextEditor(QWidget *parent)
     uiPtr->menubar->addMenu(viewMenu());
     uiPtr->toolBar->addWidget(toolbar());
     slotRenameTitle("");
+
     setWindowIcon(QIcon(":/res/Icons/file_1"));
 
     uiPtr->centralwidget->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::MinimumExpanding);
 
     readConfig();
     applyConfig();
+    connect(uiPtr->textEdit, &QTextEdit::textChanged, this, &TextEditor::slotUnsavedStarSet);
 }
 
 TextEditor::~TextEditor()
@@ -124,9 +126,9 @@ void TextEditor::applyConfig(){
 void TextEditor::slotRenameTitle(QString newName)
 {
     if (newName == "")
-        setWindowTitle(tr("Team.3 Text Editor"));
+        setWindowTitle(tr(" Team.3 Text Editor - New document.txt*"));
     else
-        setWindowTitle(newName + tr(" - Team.3 Text Editor"));
+        setWindowTitle(tr("Team.3 Text Editor - ") + newName);
 }
 
 void TextEditor::slotFileNew()
@@ -188,11 +190,15 @@ void TextEditor::slotFileSave()
     {
         slotFileSaveAs();                   // if file doesnt exist yet we save it by "save as" fucntion, if already exists just save changes
     }
+    QFileInfo fileInfo(file_path);
+    QString titleName = fileInfo.fileName();
+    slotRenameTitle(titleName);
     QTextStream out(&file);
     QString text = uiPtr->textEdit->toHtml(); // to save formating and images we change "toPlainText" into "toHtml"
     out << text;
     file.flush();
     file.close();
+    isFileSaved = true;
 }
 
 void TextEditor::slotFileSaveAs()
@@ -205,11 +211,15 @@ void TextEditor::slotFileSaveAs()
         return;
     }
     file_path = file_name;
+    QFileInfo fileInfo(file_path);
+    QString titleName = fileInfo.fileName();
+    slotRenameTitle(titleName);
     QTextStream out(&file);
     QString text = uiPtr->textEdit->toHtml(); // to save formating and images we change "toPlainText" into "toHtml"
     out << text;
     file.flush();
     file.close();
+    isFileSaved = true;
 }
 
 void TextEditor::slotPrintFile()
@@ -422,6 +432,17 @@ void TextEditor::slotLightMode()
                   "QToolBar{background-color:white;color:black}"
                   );
     uiPtr->menubar->setStyleSheet("color:black");
+}
+
+void TextEditor::slotUnsavedStarSet()
+{
+    if(isFileSaved)
+    {
+        QFileInfo fileInfo(file_path);
+        QString titleName = fileInfo.fileName();
+        slotRenameTitle(titleName + " *");
+        isFileSaved = false;
+    }
 }
 
 QMenu *TextEditor::menuConfig()
