@@ -206,6 +206,7 @@ void TextEditor::slotFileOpen()
     uiPtr->textEdit->setText(text);      // we show the content of file in the textBrowser
     QFileInfo fileInfo(file_path);
     QString titleName = fileInfo.fileName();
+    isFileSaved = true;
     slotRenameTitle(titleName);
     file.close();
 }
