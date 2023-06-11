@@ -46,7 +46,6 @@ private slots:
     void slotInsertImage();
     void slotIncreaseImage();
     void slotDecreaseImage();
-    void slotInsertTable();
     void slotDarkMode();
     void slotLightMode();
     void slotUnsavedStarSet();

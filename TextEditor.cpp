@@ -166,12 +166,39 @@ void TextEditor::slotFileNew()
 
 void TextEditor::slotFileOpen()
 {
+    if (hasUnsavedChanges())
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you want to save them?", QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::Yes)
+        {
+            slotFileSave();
+        }
+        else
+        {
+            QString file_name = QFileDialog::getOpenFileName(this, "Open the file");
+            QFile file(file_name);
+            file_path = file_name;
+            if (!file.open(QFile::ReadOnly | QFile::Text))
+            {
+                QMessageBox::warning(this, "Warning", "File not opened");
+                return;
+            }
+            QTextStream in(&file);
+            QString text = in.readAll();
+            uiPtr->textEdit->setText(text);      
+            QFileInfo fileInfo(file_path);
+            QString titleName = fileInfo.fileName();
+            slotRenameTitle(titleName);
+            file.close();
+        }
+    }
     QString file_name = QFileDialog::getOpenFileName(this, "Open the file");
     QFile file(file_name);
     file_path = file_name;
     if(!file.open(QFile::ReadOnly | QFile::Text))
     {
-        QMessageBox::warning(this, "Warning", "Cannot open the file");
+        QMessageBox::warning(this, "Warning", "File not opened");
         return;
     }
     QTextStream in(&file);
@@ -236,7 +263,22 @@ void TextEditor::slotPrintFile()
 
 void TextEditor::slotExitFile()
 {
-	QApplication::exit();
+    if (hasUnsavedChanges()) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Unsaved changes", "You have unsaved changes. Do you really want to save them?", QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::No)
+        {
+            QApplication::exit();
+        }
+        else
+        {
+            QApplication::exit();
+        }
+    }
+    else
+    {
+        QApplication::exit();
+    }
 }
 
 void TextEditor::slotUndo()
@@ -401,11 +443,6 @@ void TextEditor::slotDecreaseImage()
     }
 }
 
-void TextEditor::slotInsertTable()
-{
-
-}
-
 void TextEditor::slotDarkMode()
 {
     setStyleSheet("QPushButton{background-color:#3b3b3b; color:white}"
@@ -500,7 +537,6 @@ QMenu *TextEditor::insertMenu()
     menuInsertPtr->setFont(font);
     menuInsertPtr->setTitle(tr("Insert"));
     menuInsertPtr->addAction(tr("Image"), this, &TextEditor::slotInsertImage)->setIcon(QIcon(":/res/Icons/insert-picture-icon"));
-    menuInsertPtr->addAction(tr("Table"), this, &TextEditor::slotInsertTable)->setIcon(QIcon(":/res/Icons/tablet"));
     return menuInsertPtr;
 }
 
@@ -592,9 +628,6 @@ QToolBar *TextEditor::toolbar()
     QAction *image_down = toolbar->addAction(QIcon(":/res/Icons/picture-decrease.png"), "Reduce image");
     connect(image_down, &QAction::triggered, this, &TextEditor::slotDecreaseImage);
 
-    QAction *tablet = toolbar->addAction(QIcon(":/res/Icons/tablet"), "Insert table");
-    connect(tablet, &QAction::triggered, this, &TextEditor::slotInsertTable);
-
     return toolbar;
 }
 
@@ -631,7 +664,7 @@ bool TextEditor::hasUnsavedChanges() {
 
     QTextStream in(&file);
     QString fileContent = in.readAll();
-    QString textContent = uiPtr->textEdit->toPlainText();
+    QString textContent = uiPtr->textEdit->toHtml();
 
     return (textContent != fileContent);
 }
